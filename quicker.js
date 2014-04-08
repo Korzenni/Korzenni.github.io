@@ -16,6 +16,13 @@ $(document).ready(function() {
 	var endCellX = 0;
 	var cellRow = 0;
 
+	var actualTask = new Array();
+	var occupiedCells = new Array();
+
+	function Cell() {
+		this.coordinates = new Coordinates;
+	}
+
 	function Coordinates() {
 	    this.x = 0;
 	    this.y = 0;
@@ -69,7 +76,20 @@ $(document).ready(function() {
 		var fillX = x * cellWidth;
 		var fillY = y * cellHeight;
 
+		var coordinates = new Coordinates;
+		coordinates.x = x;
+		coordinates.y = y;
+		actualTask.push(coordinates);
+
 		quickerContext.fillStyle = "#000";
+		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
+	}
+
+	function unfillCell(x, y) {
+		var fillX = x * cellWidth;
+		var fillY = y * cellHeight;
+
+		quickerContext.fillStyle = "#FFF";
 		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
 	}
 
@@ -89,6 +109,7 @@ $(document).ready(function() {
 
 	$("#quickerCanvas").mousedown(function(event) {
   		var coordinates = canvasCellCoordinate(event);
+  		actualTask = [];
   		chosenY = coordinates.y;
   		startCellX = coordinates.x;
   		endCellX = startCellX;
@@ -123,6 +144,11 @@ $(document).ready(function() {
 	});
 
 	$("#quickerCanvas").mouseout(function(event) {
+  		if (isDragged) {
+  			for (var i = 0; i < actualTask.length; i++) {
+  				unfillCell(actualTask[i].x, actualTask[i].y);
+  			}
+  		}
   		isDragged = false;
 	});
 });
