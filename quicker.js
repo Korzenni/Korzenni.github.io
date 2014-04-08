@@ -17,20 +17,17 @@ $(document).ready(function() {
 	var cellRow = 0;
 
 	function Coordinates() {
-
 	    this.x = 0;
 	    this.y = 0;
 	}
 
 	function Task() {
-
 	    this.startX = 0;
 	    this.endX = 0;
 	    this.row = 0;
 	}
 
 	function drawCanvas () {
-
 		var x = 0.5;
 		while (x <= $("#quickerCanvas").width() + 0.5) {
  			quickerContext.moveTo(x, 0);
@@ -50,7 +47,6 @@ $(document).ready(function() {
 	}
 
 	function canvasCellCoordinate(event) {
-		
 		console.log(event);
 
 		var x = event.pageX;
@@ -70,7 +66,6 @@ $(document).ready(function() {
 	}
 
 	function fillCell(x, y) {
-
 		var fillX = x * cellWidth;
 		var fillY = y * cellHeight;
 
@@ -89,12 +84,10 @@ $(document).ready(function() {
 	drawCanvas();
 
 	$("#quickerCanvas").click(function(event) {
-
   		
 	});
 
 	$("#quickerCanvas").mousedown(function(event) {
-
   		var coordinates = canvasCellCoordinate(event);
   		chosenY = coordinates.y;
   		startCellX = coordinates.x;
@@ -105,7 +98,6 @@ $(document).ready(function() {
 	});
 
 	$("#quickerCanvas").mousemove(function(event) {
-
 		if (isDragged) {
 			var coordinates = canvasCellCoordinate(event);
 			endCellX = coordinates.x;
@@ -114,7 +106,6 @@ $(document).ready(function() {
 	});
 
 	$("#quickerCanvas").mouseup(function(event) {
-
   		var coordinates = canvasCellCoordinate(event);
   		isDragged = false;
   		fillCell(coordinates.x, chosenY);
