@@ -74,11 +74,11 @@ $(document).ready(function() {
 	}
 
 	function taskCreated(task) {
-		alert("Task created with start x: " + taskInformation.startX + " end x: " + taskInformation.endX + " and row: " + taskInformation.row + ".");
+		alert("Task created with start x: " + task.startX + " end x: " + task.endX + " and row: " + task.row + ".");
 	}
 
 	function taskEdited(task) {
-		alert("Task edited with start x: " + taskInformation.startX + " end x: " + taskInformation.endX + " and row: " + taskInformation.row + ".");
+		alert("Task edited with start x: " + task.startX + " end x: " + task.endX + " and row: " + task.row + ".");
 	}
 
 	drawCanvas();
@@ -110,8 +110,14 @@ $(document).ready(function() {
   		isDragged = false;
   		fillCell(coordinates.x, chosenY);
   		var task = new Task;
-  		task.startX = startCellX;
-  		task.endX = endCellX;
+  		if (startCellX > endCellX) {
+  			task.startX = endCellX;
+  			task.endX = startCellX;
+  		}
+  		else {
+			task.startX = startCellX;
+  			task.endX = endCellX;
+  		}
   		task.row = cellRow;
   		taskCreated(task);
 	});
