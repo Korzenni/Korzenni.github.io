@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+	// ---------------- Variables ---------------- 
 	var quickerCanvas = document.getElementById("quickerCanvas");
 	var quickerContext = quickerCanvas.getContext("2d");
 	
@@ -12,48 +13,70 @@ $(document).ready(function() {
 	var isDragged = false;
 	var chosenY = 0;
 
-	var startCellX = 0;
-	var endCellX = 0;
-	var cellRow = 0;
+	var actualTask = new Task;
+	var createdTasks = [];
 
-	var actualTask = new Array();
-	var occupiedCells = new Array();
-
-	function Cell() {
-		this.coordinates = new Coordinates;
-	}
-
-	function Coordinates() {
-	    this.x = 0;
-	    this.y = 0;
-	}
-
+	// ---------------- Task class ---------------- 
+	// This class is representation of one task. It holds information about occupied cells of this task and implements helper methods.
 	function Task() {
-	    this.startX = 0;
-	    this.endX = 0;
-	    this.row = 0;
-	}
+		this.occupiedCells = [];
+	};
 
+	// Returns last cell of task.
+	Task.prototype.endCell = function() {
+		var minimumX = 0;
+		var endCell;
+		for (var i = 0; i < this.occupiedCells.length; i++) {
+			if (this.occupiedCells[i].x > minimumX) {
+				endCell = this.occupiedCells[i];
+				minimumX = this.occupiedCells[i].x;
+			};
+		};
+		return endCell;
+	};
+
+	// Returns first cell of task.
+	Task.prototype.firstCell = function() {
+		var maximumX = numberOfRows;
+		var firstCell;
+		for (var i = 0; i < this.occupiedCells.length; i++) {
+			if (this.occupiedCells[i].x < maximumX) {
+				firstCell = this.occupiedCells[i];
+			};
+		};
+		return firstCell;
+	};
+
+	// ---------------- Cell class ----------------  
+	// Holds position information about cell in canvas.
+	function Cell(x, y) {
+		this.x = x;
+	    this.y = y;
+	};
+
+	// ---------------- Other functions ----------------  
+	// Draws canvas.
 	function drawCanvas () {
 		var x = 0.5;
 		while (x <= $("#quickerCanvas").width() + 0.5) {
  			quickerContext.moveTo(x, 0);
 			quickerContext.lineTo(x, $("#quickerCanvas").height());
 			x += cellWidth;
-		}
+		};
 			
 		var y = 0.5;
 		while (y <= $("#quickerCanvas").height()) {
 			quickerContext.moveTo(0, y);
 			quickerContext.lineTo($("#quickerCanvas").width(), y);
 			y += cellHeight;
-		}
+		};
 
 		quickerContext.strokeStyle = "#eee";
 		quickerContext.stroke();			
-	}
+	};
 
-	function canvasCellCoordinate(event) {
+	// Detects from mouse event which cell was selected.
+	function canvasCellForMouseEvent(event) {
 		console.log(event);
 
 		var x = event.pageX;
@@ -65,82 +88,102 @@ $(document).ready(function() {
 		x = Math.floor(x / cellWidth);
 		y = Math.floor(y / cellHeight);
 
-		var coordinates = new Coordinates;
-		coordinates.x = x;
-		coordinates.y = y;
+		return new Cell(x, y);
+	};
 
-		return coordinates;
-	}
-
+	// Fills selected cell with black color.
 	function fillCell(x, y) {
 		var fillX = x * cellWidth;
 		var fillY = y * cellHeight;
 
-		var coordinates = new Coordinates;
-		coordinates.x = x;
-		coordinates.y = y;
-		actualTask.push(coordinates);
+		actualTask.occupiedCells.push(new Cell(x, y));
 
 		quickerContext.fillStyle = "#000";
 		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
-	}
+	};
 
+	// Fills selected cell with white color.
 	function unfillCell(x, y) {
 		var fillX = x * cellWidth;
 		var fillY = y * cellHeight;
 
 		quickerContext.fillStyle = "#FFF";
 		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
-	}
+	};
 
-	function taskCreated(task) {
-		alert("Task created with start x: " + task.startX + " end x: " + task.endX + " and row: " + task.row + ".");
-	}
+	// Checks if any task occupies selected cell
+	function isCellOccupiedByTask(cell) {
+		for (var i = 0; i < createdTasks.length; i++) {
+			console.log(createdTasks[i]);
+			for (var a = 0; a < createdTasks[i].occupiedCells.length; a++) {
+				if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == cell.y) {
+					return true;
+				};
+			};
+		};
+		return false;
+	};
 
-	function taskEdited(task) {
-		alert("Task edited with start x: " + task.startX + " end x: " + task.endX + " and row: " + task.row + ".");
-	}
+	// Returns task for given cell
+	function taskForCell(cell) {
+		for (var i = 0; i < createdTasks.length; i++) {
+			for (var a = 0; a < createdTasks[i].occupiedCells.length; a++) {
+				if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == cell.y) {
+					return createdTasks[i];
+				};
+			};
+		};
+		return false;
+	};
+
+	// Function that is called when new task needs to be created.
+	function taskWasCreated(task) {
+		alert("Task created.");
+		actualTask = new Task;
+	};
+
+	// Function that is called when existing task needs to be edited.
+	function taskWasEdited(task) {
+		alert("Task edited.");
+	};
 
 	drawCanvas();
 
-	$("#quickerCanvas").click(function(event) {
-  		
-	});
-
 	$("#quickerCanvas").mousedown(function(event) {
-  		var coordinates = canvasCellCoordinate(event);
-  		actualTask = [];
-  		chosenY = coordinates.y;
-  		startCellX = coordinates.x;
-  		endCellX = startCellX;
-  		cellRow = chosenY;
-  		isDragged = true;
-  		fillCell(coordinates.x, chosenY);
+  		var cell = canvasCellForMouseEvent(event);
+  		if (isCellOccupiedByTask(cell)) {
+  			var task = taskForCell(cell);
+  			taskWasEdited(task);
+  		}
+  		else {
+  			chosenY = cell.y;
+	  		isDragged = true;
+	  		fillCell(cell.x, chosenY);
+  		};
 	});
 
 	$("#quickerCanvas").mousemove(function(event) {
 		if (isDragged) {
-			var coordinates = canvasCellCoordinate(event);
-			endCellX = coordinates.x;
-	  		fillCell(coordinates.x, chosenY);
-		}
+			var cell = canvasCellForMouseEvent(event);
+			if (isCellOccupiedByTask(cell)) {
+				isDragged = false;
+				createdTasks.push(actualTask);
+	  			taskWasCreated(actualTask);
+			}
+			else {
+				fillCell(cell.x, chosenY);
+			};
+		};
 	});
 
 	$("#quickerCanvas").mouseup(function(event) {
-  		var coordinates = canvasCellCoordinate(event);
-  		isDragged = false;
-  		fillCell(coordinates.x, chosenY);
-  		var task = new Task;
-  		if (startCellX > endCellX) {
-  			task.startX = endCellX;
-  			task.endX = startCellX;
-  		}
-  		else {
-			task.startX = startCellX;
-  			task.endX = endCellX;
-  		}
-  		task.row = cellRow;
-  		taskCreated(task);
+		if (isDragged) {
+			var cell = canvasCellForMouseEvent(event);
+	  		isDragged = false;
+	  		fillCell(cell.x, chosenY);
+	  		createdTasks.push(actualTask);
+	  		taskWasCreated(actualTask);
+		};
 	});
 
 	$("#quickerCanvas").mouseout(function(event) {
