@@ -4,8 +4,8 @@
 }
 
 #quickerCanvasDiv {
-	width: 500px;
-    height:200px;
+	width: 1000px;
+    height:400px;
     margin: 0px auto;
     border: 1px solid red;
 }

@@ -4,8 +4,8 @@ $(document).ready(function() {
 	var quickerCanvas = document.getElementById("quickerCanvas");
 	var quickerContext = quickerCanvas.getContext("2d");
 	
-	var numberOfRows = 4;
-	var numberOfColumns = 5;
+	var numberOfRows = 10;
+	var numberOfColumns = 10;
 	
 	var cellWidth = $("#quickerCanvas").width() / numberOfColumns;
 	var cellHeight = $("#quickerCanvas").height() / numberOfRows;
@@ -42,6 +42,7 @@ $(document).ready(function() {
 		for (var i = 0; i < this.occupiedCells.length; i++) {
 			if (this.occupiedCells[i].x < maximumX) {
 				firstCell = this.occupiedCells[i];
+				maximumX = this.occupiedCells[i].x
 			};
 		};
 		return firstCell;
@@ -77,7 +78,6 @@ $(document).ready(function() {
 
 	// Detects from mouse event which cell was selected.
 	function canvasCellForMouseEvent(event) {
-		console.log(event);
 
 		var x = event.pageX;
 		var y = event.pageY;
@@ -92,7 +92,7 @@ $(document).ready(function() {
 	};
 
 	// Fills selected cell with black color.
-	function fillCell(x, y) {
+	function fillAndCreateCell(x, y) {
 		var fillX = x * cellWidth;
 		var fillY = y * cellHeight;
 
@@ -114,8 +114,7 @@ $(document).ready(function() {
 	// Checks if any task occupies selected cell
 	function isCellOccupiedByTask(cell) {
 		for (var i = 0; i < createdTasks.length; i++) {
-			console.log(createdTasks[i]);
-			for (var a = 0; a < createdTasks[i].occupiedCells.length; a++) {
+			for (var a = 0; a < createdTasks[i].occupiedCells.length; a++) { 
 				if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == cell.y) {
 					return true;
 				};
@@ -123,6 +122,16 @@ $(document).ready(function() {
 		};
 		return false;
 	};
+
+	// Checks if current cell (that mouse hover) is in actual crated task to avoid duplicates
+	function isCellAlreadyInActualCreatedTask(cell) {
+		for (var i = 0; i < actualTask.occupiedCells.length; i++) {
+			if (actualTask.occupiedCells[i].x == cell.x && actualTask.occupiedCells[i].y == cell.y) {
+				return true;
+			};
+		};
+		return false;
+	}
 
 	// Returns task for given cell
 	function taskForCell(cell) {
@@ -138,13 +147,16 @@ $(document).ready(function() {
 
 	// Function that is called when new task needs to be created.
 	function taskWasCreated(task) {
-		alert("Task created.");
-		actualTask = new Task;
+		var firstCell = task.firstCell();
+		var endCell = task.endCell();
+		alert("Task created. First cell x: " + firstCell.x + ", end cell x: " + endCell.x + ", and y: " + firstCell.y);
 	};
 
 	// Function that is called when existing task needs to be edited.
 	function taskWasEdited(task) {
-		alert("Task edited.");
+		var firstCell = task.firstCell();
+		var endCell = task.endCell();
+		alert("Task edited. First cell x: " + firstCell.x + ", end cell x: " + endCell.x + ", and y: " + firstCell.y);
 	};
 
 	drawCanvas();
@@ -158,7 +170,7 @@ $(document).ready(function() {
   		else {
   			chosenY = cell.y;
 	  		isDragged = true;
-	  		fillCell(cell.x, chosenY);
+	  		fillAndCreateCell(cell.x, chosenY);
   		};
 	});
 
@@ -169,9 +181,12 @@ $(document).ready(function() {
 				isDragged = false;
 				createdTasks.push(actualTask);
 	  			taskWasCreated(actualTask);
+	  			actualTask = new Task;
 			}
 			else {
-				fillCell(cell.x, chosenY);
+				if (!isCellAlreadyInActualCreatedTask(cell)) {
+					fillAndCreateCell(cell.x, chosenY);
+				};
 			};
 		};
 	});
@@ -180,17 +195,21 @@ $(document).ready(function() {
 		if (isDragged) {
 			var cell = canvasCellForMouseEvent(event);
 	  		isDragged = false;
-	  		fillCell(cell.x, chosenY);
+	  		if (!isCellAlreadyInActualCreatedTask(cell)) {
+	  			fillAndCreateCell(cell.x, chosenY);
+	  		};
 	  		createdTasks.push(actualTask);
 	  		taskWasCreated(actualTask);
+	  		actualTask = new Task;
 		};
 	});
 
 	$("#quickerCanvas").mouseout(function(event) {
   		if (isDragged) {
-  			for (var i = 0; i < actualTask.length; i++) {
-  				unfillCell(actualTask[i].x, actualTask[i].y);
+  			for (var i = 0; i < actualTask.occupiedCells.length; i++) {
+  				unfillCell(actualTask.occupiedCells[i].x, actualTask.occupiedCells[i].y);
   			}
+  			actualTask = new Task;
   		}
   		isDragged = false;
 	});
