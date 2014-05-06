@@ -16,6 +16,8 @@ $(document).ready(function() {
 	var actualTask = new Task;
 	var createdTasks = [];
 
+	var actualColor = ""
+
 	// ---------------- Task class ---------------- 
 	// This class is representation of one task. It holds information about occupied cells of this task and implements helper methods.
 	function Task() {
@@ -91,32 +93,57 @@ $(document).ready(function() {
 		return new Cell(x, y);
 	};
 
-	// Fills selected cell with black color.
-	function fillAndCreateCell(x, y) {
+	// Fills selected cell with random color.
+	function fillAndCreateCell(x, y, isNewTask) {
 		var fillX = x * cellWidth;
 		var fillY = y * cellHeight;
 
 		actualTask.occupiedCells.push(new Cell(x, y));
 
-		quickerContext.fillStyle = "#000";
+		if (isNewTask) {
+			actualColor = "#"+((1<<24)*Math.random()|0).toString(16);
+			quickerContext.fillStyle = actualColor
+		}
+		else {
+			quickerContext.fillStyle = actualColor
+		};
+		
 		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
+	};
+
+	// Unfills slected cell and removes cell from actual task.
+	function unfillAndRemoveCell(x, y) {
+		var unfillX = actualTask.occupiedCells[actualTask.occupiedCells.length - 1].x * cellWidth;
+		var unfillY = y * cellHeight;
+
+		actualTask.occupiedCells.splice(actualTask.occupiedCells.length - 1, 1);
+
+		quickerContext.fillStyle = "#FFF";
+		quickerContext.fillRect(Math.floor(unfillX) + 1, Math.floor(unfillY) + 1, cellWidth - 1, cellHeight - 1);
 	};
 
 	// Fills selected cell with white color.
 	function unfillCell(x, y) {
-		var fillX = x * cellWidth;
-		var fillY = y * cellHeight;
+		var unfillX = x * cellWidth;
+		var unfillY = y * cellHeight;
 
 		quickerContext.fillStyle = "#FFF";
-		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
+		quickerContext.fillRect(Math.floor(unfillX) + 1, Math.floor(unfillY) + 1, cellWidth - 1, cellHeight - 1);
 	};
 
 	// Checks if any task occupies selected cell
-	function isCellOccupiedByTask(cell) {
+	function isCellOccupiedByTask(cell, firstTimeCheck, chosenY) {
 		for (var i = 0; i < createdTasks.length; i++) {
-			for (var a = 0; a < createdTasks[i].occupiedCells.length; a++) { 
-				if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == cell.y) {
-					return true;
+			for (var a = 0; a < createdTasks[i].occupiedCells.length; a++) {
+				if (firstTimeCheck) {
+					if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == cell.y) {
+						return true;
+					};
+				} 
+				else {
+					if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == chosenY) {
+						return true;
+					};
 				};
 			};
 		};
@@ -126,11 +153,24 @@ $(document).ready(function() {
 	// Checks if current cell (that mouse hover) is in actual crated task to avoid duplicates
 	function isCellAlreadyInActualCreatedTask(cell) {
 		for (var i = 0; i < actualTask.occupiedCells.length; i++) {
-			if (actualTask.occupiedCells[i].x == cell.x && actualTask.occupiedCells[i].y == cell.y) {
+			if (actualTask.occupiedCells[i].x == cell.x) {
 				return true;
 			};
 		};
 		return false;
+	}
+
+	// Checks if mose started to move in different direction. User is deleting previously created cells in same dragging.
+	function didMouseEnteredPreviousCreatedCell(cell) {
+		if (cell.x == actualTask.occupiedCells[actualTask.occupiedCells.length - 2].x) {
+			return true;
+		};
+		return false;
+	};
+
+	// Prints coordinates of cell. Used for debugging.
+	function debugCell(debugText, cell) {
+		console.log(debugText + " cell x: " + cell.x + " y: " + cell.y);
 	}
 
 	// Returns task for given cell
@@ -163,21 +203,21 @@ $(document).ready(function() {
 
 	$("#quickerCanvas").mousedown(function(event) {
   		var cell = canvasCellForMouseEvent(event);
-  		if (isCellOccupiedByTask(cell)) {
+  		if (isCellOccupiedByTask(cell, true, 0)) {
   			var task = taskForCell(cell);
   			taskWasEdited(task);
   		}
   		else {
   			chosenY = cell.y;
 	  		isDragged = true;
-	  		fillAndCreateCell(cell.x, chosenY);
+	  		fillAndCreateCell(cell.x, chosenY, true);
   		};
 	});
 
 	$("#quickerCanvas").mousemove(function(event) {
 		if (isDragged) {
 			var cell = canvasCellForMouseEvent(event);
-			if (isCellOccupiedByTask(cell)) {
+			if (isCellOccupiedByTask(cell, false, chosenY)) {
 				isDragged = false;
 				createdTasks.push(actualTask);
 	  			taskWasCreated(actualTask);
@@ -185,7 +225,12 @@ $(document).ready(function() {
 			}
 			else {
 				if (!isCellAlreadyInActualCreatedTask(cell)) {
-					fillAndCreateCell(cell.x, chosenY);
+					fillAndCreateCell(cell.x, chosenY, false);
+				}
+				else {
+					if (didMouseEnteredPreviousCreatedCell(cell)) {
+						unfillAndRemoveCell(cell.x, chosenY);
+					};
 				};
 			};
 		};
@@ -196,7 +241,7 @@ $(document).ready(function() {
 			var cell = canvasCellForMouseEvent(event);
 	  		isDragged = false;
 	  		if (!isCellAlreadyInActualCreatedTask(cell)) {
-	  			fillAndCreateCell(cell.x, chosenY);
+	  			fillAndCreateCell(cell.x, chosenY, false);
 	  		};
 	  		createdTasks.push(actualTask);
 	  		taskWasCreated(actualTask);
@@ -206,11 +251,10 @@ $(document).ready(function() {
 
 	$("#quickerCanvas").mouseout(function(event) {
   		if (isDragged) {
-  			for (var i = 0; i < actualTask.occupiedCells.length; i++) {
-  				unfillCell(actualTask.occupiedCells[i].x, actualTask.occupiedCells[i].y);
-  			}
-  			actualTask = new Task;
-  		}
+  			createdTasks.push(actualTask);
+	  		taskWasCreated(actualTask);
+	  		actualTask = new Task;
+  		};
   		isDragged = false;
 	});
 });
