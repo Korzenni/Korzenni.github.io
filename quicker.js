@@ -1,15 +1,15 @@
 $(document).ready(function() {
 
-	// ---------------- Variables ---------------- 
+	// ---------------- Variables ----------------
 	var quickerCanvas = document.getElementById("quickerCanvas");
 	var quickerContext = quickerCanvas.getContext("2d");
-	
+
 	var numberOfRows = 10;
 	var numberOfColumns = 10;
-	
+
 	var cellWidth = $("#quickerCanvas").width() / numberOfColumns;
 	var cellHeight = $("#quickerCanvas").height() / numberOfRows;
-	
+
 	var isDragged = false;
 	var chosenY = 0;
 
@@ -18,7 +18,7 @@ $(document).ready(function() {
 
 	var actualColor = ""
 
-	// ---------------- Task class ---------------- 
+	// ---------------- Task class ----------------
 	// This class is representation of one task. It holds information about occupied cells of this task and implements helper methods.
 	function Task() {
 		this.occupiedCells = [];
@@ -29,7 +29,7 @@ $(document).ready(function() {
 		var minimumX = 0;
 		var endCell;
 		for (var i = 0; i < this.occupiedCells.length; i++) {
-			if (this.occupiedCells[i].x > minimumX) {
+			if (this.occupiedCells[i].x >= minimumX) {
 				endCell = this.occupiedCells[i];
 				minimumX = this.occupiedCells[i].x;
 			};
@@ -42,7 +42,7 @@ $(document).ready(function() {
 		var maximumX = numberOfRows;
 		var firstCell;
 		for (var i = 0; i < this.occupiedCells.length; i++) {
-			if (this.occupiedCells[i].x < maximumX) {
+			if (this.occupiedCells[i].x <= maximumX) {
 				firstCell = this.occupiedCells[i];
 				maximumX = this.occupiedCells[i].x
 			};
@@ -50,14 +50,14 @@ $(document).ready(function() {
 		return firstCell;
 	};
 
-	// ---------------- Cell class ----------------  
+	// ---------------- Cell class ----------------
 	// Holds position information about cell in canvas.
 	function Cell(x, y) {
 		this.x = x;
 	    this.y = y;
 	};
 
-	// ---------------- Other functions ----------------  
+	// ---------------- Other functions ----------------
 	// Draws canvas.
 	function drawCanvas () {
 		var x = 0.5;
@@ -66,7 +66,7 @@ $(document).ready(function() {
 			quickerContext.lineTo(x, $("#quickerCanvas").height());
 			x += cellWidth;
 		};
-			
+
 		var y = 0.5;
 		while (y <= $("#quickerCanvas").height()) {
 			quickerContext.moveTo(0, y);
@@ -75,7 +75,7 @@ $(document).ready(function() {
 		};
 
 		quickerContext.strokeStyle = "#eee";
-		quickerContext.stroke();			
+		quickerContext.stroke();
 	};
 
 	// Detects from mouse event which cell was selected.
@@ -107,7 +107,7 @@ $(document).ready(function() {
 		else {
 			quickerContext.fillStyle = actualColor
 		};
-		
+
 		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
 	};
 
@@ -139,7 +139,7 @@ $(document).ready(function() {
 					if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == cell.y) {
 						return true;
 					};
-				} 
+				}
 				else {
 					if (createdTasks[i].occupiedCells[a].x == cell.x && createdTasks[i].occupiedCells[a].y == chosenY) {
 						return true;
@@ -162,8 +162,10 @@ $(document).ready(function() {
 
 	// Checks if mose started to move in different direction. User is deleting previously created cells in same dragging.
 	function didMouseEnteredPreviousCreatedCell(cell) {
-		if (cell.x == actualTask.occupiedCells[actualTask.occupiedCells.length - 2].x) {
-			return true;
+		if (actualTask.occupiedCells.length > 1) {
+			if (cell.x == actualTask.occupiedCells[actualTask.occupiedCells.length - 2].x) {
+				return true;
+			};
 		};
 		return false;
 	};
