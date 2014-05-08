@@ -95,20 +95,23 @@ $(document).ready(function() {
 
 	// Fills selected cell with random color.
 	function fillAndCreateCell(x, y, isNewTask) {
-		var fillX = x * cellWidth;
-		var fillY = y * cellHeight;
-
 		actualTask.occupiedCells.push(new Cell(x, y));
 
 		if (isNewTask) {
-			actualColor = "#"+((1<<24)*Math.random()|0).toString(16);
+			actualColor = "#" + ((1 << 24) * Math.random()|0).toString(16);
 			quickerContext.fillStyle = actualColor
 		}
 		else {
 			quickerContext.fillStyle = actualColor
 		};
 
-		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth - 1, cellHeight - 1);
+		var firstCell = actualTask.firstCell();
+		var endCell = actualTask.endCell();
+
+		var fillX = firstCell.x * cellWidth;
+		var fillY = firstCell.y * cellHeight;
+
+		quickerContext.fillRect(Math.floor(fillX) + 1, Math.floor(fillY) + 1, cellWidth * (endCell.x - firstCell.x + 1) - 1, cellHeight - 1);
 	};
 
 	// Unfills slected cell and removes cell from actual task.
@@ -120,6 +123,9 @@ $(document).ready(function() {
 
 		quickerContext.fillStyle = "#FFF";
 		quickerContext.fillRect(Math.floor(unfillX) + 1, Math.floor(unfillY) + 1, cellWidth - 1, cellHeight - 1);
+
+		quickerContext.fillStyle = "#eee";
+		quickerContext.fillRect(Math.floor(unfillX) + cellWidth, Math.floor(unfillY), 1, cellHeight);
 	};
 
 	// Fills selected cell with white color.
